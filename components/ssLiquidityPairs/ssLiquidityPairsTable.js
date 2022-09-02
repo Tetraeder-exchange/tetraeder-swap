@@ -1772,6 +1772,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                         fontSize: 14,
                                         lineHeight: '120%',
                                         color: '#E4E9F4',
+                                        whiteSpace: 'nowrap',
                                       }}>
                                         {formatCurrency(BigNumber(row.tvl))} <span style={{color: 'rgb(124, 131, 138)'}}>$</span>
                                     </Typography>
@@ -1889,7 +1890,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       tooltip: css.tooltip_wrapper
                                     }}
                                   >
-                                    <QuizIcon fontSize="small" style={{ color: "rgb(129, 145, 185)", marginLeft: 5 }} />
+                                    <img src="/images/icon-info.svg" width="16px" style={{ marginLeft: 12 }} />
                                   </Tooltip>
                                 </div>
                               }
@@ -2885,7 +2886,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                   tooltip: css.tooltip_wrapper
                                 }}
                               >
-                                <QuizIcon fontSize="small" style={{ color: "rgb(129, 145, 185)", marginLeft: 5 }} />
+                                <img src="/images/icon-info.svg" width="16px" style={{ marginLeft: 5 }} />
                               </Tooltip>
                             </div>
                           </div>

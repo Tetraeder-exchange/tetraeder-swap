@@ -71,7 +71,9 @@ class Store {
         const provider = await detectProvider();
         this.getGasPrices();
 
-        let providerChain = await provider.request({ method: 'eth_chainId' });
+        let providerChain = provider
+            ? await provider?.request({ method: 'eth_chainId' })
+            : null;
 
         this.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
 
@@ -180,6 +182,12 @@ class Store {
             return {};
         }
     };
+
+    isWeb3ProviderExist = async () => {
+        const hasEthereum = !!window?.ethereum;
+        const hasProvider = await detectProvider();
+        return hasEthereum || hasProvider;
+    }
 
     getWeb3Provider = async () => {
         // let web3context = this.getStore('web3context');
