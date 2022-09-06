@@ -2499,6 +2499,22 @@
       "chainId": 56,
       "decimals": 18,
       "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/20408.png"
+    },
+    {
+      "name": "USDFI",
+      "symbol": "USDFI",
+      "address": "0x7DF1938170869AFE410098540c051A8A50308988",
+      "chainId": 56,
+      "decimals": 18,
+      "logoURI": "https://raw.githubusercontent.com/USDFI/Official-USDFI-Graphics/main/USDFI/USDFI_200.png"
+    },
+    {
+      "name": "STABLE",
+      "symbol": "STABLE",
+      "address": "0xE7Df6907120684add86f686E103282Ee5CD17b02",
+      "chainId": 56,
+      "decimals": 18,
+      "logoURI": "https://raw.githubusercontent.com/USDFI/Official-USDFI-Graphics/main/STABLE/STABLE_200.png"
     }
   ]
 }

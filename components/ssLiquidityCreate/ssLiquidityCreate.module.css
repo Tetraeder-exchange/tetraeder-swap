@@ -500,6 +500,7 @@
 .assetSelectMenu {
   padding-left: 0 !important;
   padding-right: 0 !important;
+  margin-right: 8px !important;
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -12,7 +12,7 @@ import {
 import {v4 as uuidv4} from "uuid";
 
 import * as moment from "moment";
-import {formatCurrency, retry} from "../utils";
+import {formatCurrency, retry, buildRoutes, getPrice, getAmountOut} from "../utils";
 import stores from "./";
 
 import BigNumber from "bignumber.js";
@@ -24,10 +24,12 @@ import migratorAbi from "./abis/migrator.json";
 import FactoryAbi from "./abis/FactoryAbi.json";
 import {ConstructionOutlined} from "@mui/icons-material";
 import {
+  ERC20_ABI,
   USD_PLUS_ADDRESS,
   USD_PLUS_BOOSTED_DATA_URL,
 } from "./constants/contracts";
 import router from "next/router";
+import {PAIR_ABI} from "./constants/contractsTestnet";
 
 const pairsQuery = `
 {
@@ -4246,17 +4248,8 @@ class Store {
       ) {
         return null;
       }
-      // override the routeAsset
-      let newRouteAssets = null;
-      if (
-        fromAsset.address.toLowerCase() ===
-        CONTRACTS.SPHERE_ADDRESS.toLowerCase() ||
-        toAsset.address.toLowerCase() === CONTRACTS.SPHERE_ADDRESS.toLowerCase()
-      ) {
-        newRouteAssets = await this._getUSDPRouteAssets();
-      }
-      const routeAssets = _routeAssets;
 
+      const routeAssets = _routeAssets;
       let addy0 = fromAsset.address;
       let addy1 = toAsset.address;
 
@@ -4267,106 +4260,7 @@ class Store {
         addy1 = CONTRACTS.WFTM_ADDRESS;
       }
 
-      const includesRouteAddress = routeAssets.filter((asset) => {
-        return (
-          asset.address.toLowerCase() == addy0.toLowerCase() ||
-          asset.address.toLowerCase() == addy1.toLowerCase()
-        );
-      });
-
-      let amountOuts = [];
-
-      // if (includesRouteAddress.length === 0) {
-      amountOuts = routeAssets
-        .map((routeAsset) => {
-          return [
-            {
-              routes: [
-                {
-                  from: addy0,
-                  to: routeAsset.address,
-                  stable: true,
-                },
-                {
-                  from: routeAsset.address,
-                  to: addy1,
-                  stable: true,
-                },
-              ],
-              routeAsset: routeAsset,
-            },
-            {
-              routes: [
-                {
-                  from: addy0,
-                  to: routeAsset.address,
-                  stable: false,
-                },
-                {
-                  from: routeAsset.address,
-                  to: addy1,
-                  stable: false,
-                },
-              ],
-              routeAsset: routeAsset,
-            },
-            {
-              routes: [
-                {
-                  from: addy0,
-                  to: routeAsset.address,
-                  stable: true,
-                },
-                {
-                  from: routeAsset.address,
-                  to: addy1,
-                  stable: false,
-                },
-              ],
-              routeAsset: routeAsset,
-            },
-            {
-              routes: [
-                {
-                  from: addy0,
-                  to: routeAsset.address,
-                  stable: false,
-                },
-                {
-                  from: routeAsset.address,
-                  to: addy1,
-                  stable: true,
-                },
-              ],
-              routeAsset: routeAsset,
-            },
-          ];
-        })
-        .flat();
-
-      amountOuts.push({
-        routes: [
-          {
-            from: addy0,
-            to: addy1,
-            stable: true,
-          },
-        ],
-        routeAsset: null,
-      });
-
-      amountOuts.push({
-        routes: [
-          {
-            from: addy0,
-            to: addy1,
-            stable: false,
-          },
-        ],
-        routeAsset: null,
-      });
-
-      // const multicall = await stores.accountStore.getMulticall();
+      let amountOuts = buildRoutes(routeAssets, addy0, addy1)
 
       const retryCall = async () => {
         const res = await Promise.allSettled(
@@ -4439,31 +4333,56 @@ class Store {
 
       for (let i = 0; i < bestAmountOut.routes.length; i++) {
         let amountIn = bestAmountOut.receiveAmounts[i];
-        // let amountOut = bestAmountOut.receiveAmounts[i + 1];
-
         // console.log('amountIn', amountIn);
         // console.log('from,', bestAmountOut.routes[i].from);
         // console.log('to,', bestAmountOut.routes[i].to);
         // console.log('stable', bestAmountOut.routes[i].stable);
 
         try {
-          const res = await libraryContract.methods
-            .getTradeDiff3(
-              amountIn,
+          const tokenInDecimals = await (new web3.eth.Contract(
+            CONTRACTS.ERC20_ABI,
+            bestAmountOut.routes[i].from
+          )).methods.decimals().call();
+
+          // console.log('reserves call',
+          //   BigNumber(amountIn).div(10 ** parseInt(tokenInDecimals)).toString(),
+          //   bestAmountOut.routes[i].from,
+          //   bestAmountOut.routes[i].to,
+          //   bestAmountOut.routes[i].stable)
+
+          const reserves = await libraryContract.methods
+            .getNormalizedReserves(
               bestAmountOut.routes[i].from,
               bestAmountOut.routes[i].to,
               bestAmountOut.routes[i].stable
-            )
-            .call();
-          const ratio = BigNumber(res.b).div(res.a);
-          // console.log('ratio', ratio.toFixed(18), res.a, res.b, )
+            ).call();
+
+          // console.log('reserves result',
+          //   BigNumber(reserves[0]).div(1e18).toString(),
+          //   BigNumber(reserves[1]).div(1e18).toString(),)
+
+          const priceWithoutImpact = getPrice(
+            BigNumber(reserves[0]).div(1e18),
+            BigNumber(reserves[1]).div(1e18),
+            bestAmountOut.routes[i].stable
+          ).times(BigNumber(amountIn).div(10 ** parseInt(tokenInDecimals)));
+
+          const priceAfterSwap = getAmountOut(
+            BigNumber(amountIn).div(10 ** parseInt(tokenInDecimals)),
+            BigNumber(reserves[0]).div(1e18),
+            BigNumber(reserves[1]).div(1e18),
+            bestAmountOut.routes[i].stable
+          );
+
+          const ratio = priceAfterSwap.div(priceWithoutImpact);
+          // console.log('ratio', ratio.toString(), priceWithoutImpact.toString(), priceAfterSwap.toString(), )
           totalRatio = BigNumber(totalRatio).times(ratio).toFixed(18);
         } catch (e) {
           console.log('Error define trade difference for',
             amountIn?.toString(),
             bestAmountOut.routes[i].from,
             bestAmountOut.routes[i].to,
-            bestAmountOut.routes[i].stable)
+            bestAmountOut.routes[i].stable, e)
         }
 
       }

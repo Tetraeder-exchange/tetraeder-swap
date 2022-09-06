@@ -1298,12 +1298,6 @@ function Setup() {
             </div>
         )}
 
-        {loading && (
-            <div className={classes.loader}>
-              <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-            </div>
-        )}
-
         {quoteError && (
             <div
                 className={[classes.quoteLoader, classes.quoteLoaderError].join(" ")}

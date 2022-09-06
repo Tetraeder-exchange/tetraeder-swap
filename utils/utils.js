@@ -28,8 +28,8 @@ export function formatCurrency(amount, decimals = 2) {
 export function formatAddress(address, length = "short") {
   if (address && length === "shortest") {
     return address = address.substring(0, 2) +
-    "..." +
-    address.substring(address.length - 4, address.length);
+      "..." +
+      address.substring(address.length - 4, address.length);
   } else if (address && length === "short") {
     address =
       address.substring(0, 6) +
@@ -170,7 +170,7 @@ export const formatInputAmount = (value) => {
 
 const MAX_REQUEST_RETRY = 3;
 
-export const retry = ({ fn, args, defaultValue }) => {
+export const retry = ({fn, args, defaultValue}) => {
   let retryCount = 0;
   const wrappedFn = async () => {
     try {
@@ -188,3 +188,183 @@ export const retry = ({ fn, args, defaultValue }) => {
 
   return wrappedFn;
 };
+
+// ROUTES
+
+export function buildRoutes(routeAssets, addy0, addy1) {
+  const result = routeAssets
+    .map((routeAsset) => {
+
+      const arr = [];
+
+      if (addy0.toLowerCase() === routeAsset.address.toLowerCase()
+        || addy1.toLowerCase() === routeAsset.address.toLowerCase()) {
+        return arr;
+      }
+      arr.push({
+        routes: [
+          {
+            from: addy0,
+            to: routeAsset.address,
+            stable: true,
+          },
+          {
+            from: routeAsset.address,
+            to: addy1,
+            stable: true,
+          },
+        ],
+        routeAsset: routeAsset,
+      });
+
+
+      arr.push({
+        routes: [
+          {
+            from: addy0,
+            to: routeAsset.address,
+            stable: false,
+          },
+          {
+            from: routeAsset.address,
+            to: addy1,
+            stable: false,
+          },
+        ],
+        routeAsset: routeAsset,
+      });
+
+      arr.push({
+        routes: [
+          {
+            from: addy0,
+            to: routeAsset.address,
+            stable: true,
+          },
+          {
+            from: routeAsset.address,
+            to: addy1,
+            stable: false,
+          },
+        ],
+        routeAsset: routeAsset,
+      });
+      arr.push({
+        routes: [
+          {
+            from: addy0,
+            to: routeAsset.address,
+            stable: false,
+          },
+          {
+            from: routeAsset.address,
+            to: addy1,
+            stable: true,
+          },
+        ],
+        routeAsset: routeAsset,
+      });
+      return arr;
+    })
+    .flat();
+
+  result.push({
+    routes: [
+      {
+        from: addy0,
+        to: addy1,
+        stable: true,
+      },
+    ],
+    routeAsset: null,
+  });
+  result.push({
+    routes: [
+      {
+        from: addy0,
+        to: addy1,
+        stable: false,
+      },
+    ],
+    routeAsset: null,
+  });
+  // console.log(">>> ROUTES:", result)
+  return result;
+}
+
+
+/// PRICE CALCULATIONS
+
+export function getPrice(reserveIn, reserveOut, stable) {
+  const minimalValue = BigNumber(1e-9);
+  if (stable) {
+    return getAmountOutStable(minimalValue, reserveIn, reserveOut).div(minimalValue);
+  } else {
+    return getAmountOutVolatile(minimalValue, reserveIn, reserveOut).div(minimalValue);
+  }
+}
+
+export function getAmountOut(amountIn, reserveIn, reserveOut, stable) {
+  if (stable) {
+    return getAmountOutStable(amountIn, reserveIn, reserveOut);
+  } else {
+    return getAmountOutVolatile(amountIn, reserveIn, reserveOut);
+  }
+}
+
+function getAmountOutVolatile(amountIn, reserveIn, reserveOut) {
+  // console.log("getAmountOutVolatile", amountIn.toString(), reserveIn.toString(), reserveOut.toString())
+  return amountIn.times(reserveOut).div(reserveIn.plus(amountIn));
+}
+
+function getAmountOutStable(amountIn, reserveIn, reserveOut) {
+  const xy = _k(reserveIn, reserveOut);
+  return reserveOut.minus(_getY(amountIn.plus(reserveIn), xy, reserveOut));
+}
+
+function _k(_x, _y) {
+  const _a = _x.times(_y);
+  const _b = _x.times(_x).plus(_y.times(_y));
+  // x3y+y3x >= k
+  return _a.times(_b);
+}
+
+function _getY(x0, xy, y) {
+  for (let i = 0; i < 255; i++) {
+    const yPrev = y;
+    const k = _f(x0, y);
+    if (k.lt(xy)) {
+      const dy = xy.minus(k).div(_d(x0, y));
+      y = y.plus(dy);
+    } else {
+      const dy = k.minus(xy).div(_d(x0, y));
+      y = y.minus(dy);
+    }
+    if (_closeTo(y, yPrev, 1)) {
+      break;
+    }
+  }
+  return y;
+}
+
+function _f(x0, y) {
+  return x0.times(y.pow(3)).plus(y.times(x0.pow(3)));
+}
+
+function _d(x0, y) {
+  return BigNumber(3).times(x0.times(y.pow(2))).plus(x0.pow(3));
+}
+
+function _closeTo(a, b, target) {
+  if (a.gt(b)) {
+    if (a.minus(b).lt(target)) {
+      return true;
+    }
+  } else {
+    if (b.minus(a).lt(target)) {
+      return true;
+    }
+  }
+  return false;
+}
+

@@ -19,6 +19,26 @@
   background: linear-gradient(to right, #141e30, #243b55);
 }
 
+.content--light *::-webkit-scrollbar-thumb {
+  background: #586586;
+  border-radius: 8px;
+  border: 1px solid #171D2D;
+}
+
+.content--light * {
+  scrollbar-color: #586586 #171D2D;
+}
+
+.content--dark *::-webkit-scrollbar-thumb {
+  background: #586586;
+  border-radius: 8px;
+  border: 1px solid #171D2D;
+}
+
+.content--dark * {
+  scrollbar-color: #586586 #171D2D;
+}
+
 .content--light {
   /* background: var(--background-light) url("/images/background/background-light.jpg") no-repeat top left; */
   /* background-size: cover; */
