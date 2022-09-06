@@ -14,10 +14,9 @@
   position: absolute;
   height: 100%;
   width: 100%;
-  background: #2B3446;
-  background-image: url('/images/background/background.jpg');
-  background-position: center;
-  background-size: cover;
+  background: #141e30;
+  background: -webkit-linear-gradient(to right, #141e30, #243b55);
+  background: linear-gradient(to right, #141e30, #243b55);
 }
 
 .content--light {
