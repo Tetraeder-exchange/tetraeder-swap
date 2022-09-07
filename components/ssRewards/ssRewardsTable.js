@@ -1403,7 +1403,6 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
                                     display: "flex",
                                     justifyContent: "flex-end",
                                     alignItems: "center",
-                                    height: 85,
                                     marginTop: 10,
                                   }}
                                 >
