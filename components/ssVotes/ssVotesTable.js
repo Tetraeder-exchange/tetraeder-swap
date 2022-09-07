@@ -1917,7 +1917,6 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                   {!headCell.isHideInDetails &&
                                       <div
                                           style={{
-                                            height: 72,
                                             borderTop: `1px solid #060B17`,
                                           }}
                                           className={['g-flex', 'g-flex--align-center'].join(' ')}>
@@ -2025,6 +2024,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                                   fontSize: 14,
                                                   lineHeight: '120%',
                                                   color: '#8191B9',
+                                                  textAlign: 'left'
                                                 }}>
 
                                               {headCell.id === 'balance' && formatSymbol(row.token0.symbol)}
@@ -2034,7 +2034,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                                         .filter(x => !BigNumber(x?.left).isZero())
                                                         .map((bribe, idx) => {
                                                         return (
-                                                            <div className={['g-flex-column', 'g-flex--align-end'].join(' ')}>
+                                                            <div className={['g-flex-column', 'g-flex--align-left'].join(' ') }>
                                                               {
                                                                 formatSymbol(bribe.token.symbol)
                                                               }
