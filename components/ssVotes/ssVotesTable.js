@@ -27,6 +27,7 @@ import SortSelect from '../select-sort/select-sort';
 import { formatSymbol } from '../../utils';
 import css from "./ssVotesTable.module.css";
 import cssTokenSelect from '../select-token/select-token.module.css';
+import { margin } from '@mui/system';
 
 const CustomSlider = styled(Slider)(({theme, appTheme, disabled}) => {
 
@@ -733,7 +734,7 @@ const useStyles = makeStyles((theme) => {
     },
     accordionSummaryContent: {
       margin: 0,
-      padding: 0,
+      padding: 0
     },
     dialogPaper: {
       borderRadius: 12,
@@ -1117,8 +1118,8 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                           }}>
                           {
                             tableCellContent(
-                              `${formatCurrency(BigNumber(row?.gauge?.apr), 0)}%`,
-                              `${formatCurrency(BigNumber(row?.gauge?.expectAPR), 0)}%`,
+                              `${formatCurrency(BigNumber(row?.gauge?.apr), 2)}%`,
+                              `${formatCurrency(BigNumber(row?.gauge?.expectAPR), 2)}%`,
                               'Current',
                               'Next week'
                             )
@@ -1727,7 +1728,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                         color: '#8191B9',
                                       }}
                                       noWrap>
-                                    My Votes
+                                    TVL
                                   </Typography>
 
                                   <div
@@ -1747,8 +1748,28 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                             flexDirection: 'column',
                                             // alignItems: 'flex-end',
                                           }}
-                                      >
-                                        <Typography
+                                    >
+                                      <Typography
+                          className={classes.textSpaced}
+                                            style={{
+                                              marginBottom: 4,
+                                              fontWeight: 400,
+                                              fontSize: 14,
+                                              lineHeight: '120%',
+                                              color: '#E4E9F4',
+                                              whiteSpace: 'nowrap',
+                          }}>
+                            
+                          {
+                            tableCellContent(
+                              `${(numeral(BigNumber(row?.tvl).toLocaleString()).format('($ 0a)'))} `,
+                              null,
+                              null,
+                              null,
+                            )
+                          }
+                        </Typography>
+                                        {/* <Typography
                                             className={classes.textSpaced}
                                             style={{
                                               marginBottom: 4,
@@ -1771,31 +1792,10 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                               whiteSpace: 'nowrap',
                                             }}>
                                           {`${formatCurrency(sliderValue)} %`}
-                                        </Typography>
+                                        </Typography> */}
                                       </div>
 
-                                      <Button
-                                          variant="outlined"
-                                          color="primary"
-                                          style={{
-                                            padding: '7px 14px',
-                                            border: `1px solid rgb(211, 248, 90)`,
-                                            borderRadius: 12,
-                                            fontWeight: 600,
-                                            fontSize: 14,
-                                            lineHeight: '120%',
-                                            color: 'rgb(211, 248, 90)',
-                                            textTransform: 'uppercase',
-                                            marginLeft: 20,
-                                          }}
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            event.preventDefault();
-
-                                            openVoteDialog(row);
-                                          }}>
-                                        Vote
-                                      </Button>
+                                      
                                     </div>
                                   </div>
                                 </div>
@@ -1816,7 +1816,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                         textAlign: 'right',
                                       }}
                                       noWrap>
-                                    TVL / APR
+                                    APR
                                   </Typography>
 
                                   <div
@@ -1870,7 +1870,8 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                             ),0)
                                         }%`}
                                       </Typography> */}
-                                    </div>
+                                  </div>
+                                  
                                   </div>
                                 </div>
                               </div>
@@ -1916,7 +1917,6 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                   {!headCell.isHideInDetails &&
                                       <div
                                           style={{
-                                            height: 72,
                                             borderTop: `1px solid #060B17`,
                                           }}
                                           className={['g-flex', 'g-flex--align-center'].join(' ')}>
@@ -2004,8 +2004,8 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                     {headCell.id === 'balance' && formatCurrency(BigNumber(row?.gauge?.balance).div(row?.gauge?.totalSupply).times(row?.gauge?.reserve1))}
                                     {headCell.id === 'liquidity' && formatCurrency(BigNumber(row?.reserve1))}
                                     {headCell.id === 'apy' && ''}
-                                    {headCell.id === 'myVotes' && `${formatCurrency(sliderValue)} %`}
-                                  </Typography>
+                                          {headCell.id === 'myVotes' && `${formatCurrency(sliderValue)} %`}
+                                        </Typography>
                                         </div>
 
                                           <div
@@ -2024,6 +2024,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                                   fontSize: 14,
                                                   lineHeight: '120%',
                                                   color: '#8191B9',
+                                                  textAlign: 'left'
                                                 }}>
 
                                               {headCell.id === 'balance' && formatSymbol(row.token0.symbol)}
@@ -2033,7 +2034,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                                         .filter(x => !BigNumber(x?.left).isZero())
                                                         .map((bribe, idx) => {
                                                         return (
-                                                            <div className={['g-flex-column', 'g-flex--align-end'].join(' ')}>
+                                                            <div className={['g-flex-column', 'g-flex--align-left'].join(' ') }>
                                                               {
                                                                 formatSymbol(bribe.token.symbol)
                                                               }
@@ -2059,13 +2060,46 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                               {headCell.id === 'apy' && ''}
                                               {headCell.id === 'myVotes' && formatSymbol(row.token1.symbol)}
                                             </Typography>
-                                          </div>
+                                            
+                                      </div>
+                                      
                                         </div>
                                       </div>
                                   }
                                 </>
                             ))}
-                          </AccordionDetails>
+                        </AccordionDetails>
+                        <div
+                          style={{
+                            textAlign: 'right',
+                            backgroundColor: '#000000',
+                            padding: 8
+                          }
+                        }
+                        >
+                        <Button
+                                          variant="outlined"
+                                          color="primary"
+                                          style={{
+                                            padding: '7px 14px',
+                                            border: `1px solid rgb(211, 248, 90)`,
+                                            borderRadius: 12,
+                                            fontWeight: 600,
+                                            fontSize: 14,
+                                            lineHeight: '120%',
+                                            color: 'rgb(211, 248, 90)',
+                                            textTransform: 'uppercase',
+                                            marginLeft: 20,
+                                          }}
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            event.preventDefault();
+
+                                            openVoteDialog(row);
+                                          }}>
+                                        Vote
+                        </Button>
+                        </div>
                         </Accordion>
                       </>
                   );
