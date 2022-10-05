@@ -2,7 +2,7 @@ import {ACTIONS, CONTRACTS, ROUTE_ASSETS} from "./constants";
 import {formatBN, parseBN, removeDuplicate} from "../utils";
 import stores from "./";
 import router from "next/router";
-import {getNftById, getVeApr, loadNfts} from "./helpers/ve-helper";
+import {getNftById, getVeApr, getVeTotalPower, loadNfts} from "./helpers/ve-helper";
 import {enrichPairInfo, getAndUpdatePair, getPairs, loadPair} from "./helpers/pair-helper";
 import {removeBaseAsset, saveLocalAsset} from "./helpers/local-storage-helper";
 import {getBalancesForBaseAssets, getBaseAssets, getOrCreateBaseAsset, getTokenBalance} from "./helpers/token-helper";
@@ -322,6 +322,7 @@ class Store {
         decimals: CONTRACTS.VE_TOKEN_DECIMALS,
         logoURI: CONTRACTS.VE_TOKEN_LOGO,
         veDistApr: await getVeApr(),
+        totalPower: await getVeTotalPower(await this.getWeb3()),
       };
     } catch (e) {
       console.error("Error load ve info", e);
@@ -541,7 +542,7 @@ class Store {
       token1,
       amount0,
       amount1,
-      pair.stable,
+      pair.isStable,
       slippage,
       this.getUserAddress(),
       await this.getWeb3(),

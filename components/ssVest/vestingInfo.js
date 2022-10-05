@@ -19,7 +19,7 @@ export default function VestingInfo({
     <div className={classes.vestInfoContainer}>
       {showVestingStructure && (
         <div className={classes.seccondSection}>
-          {/* 
+          {/*
           <Typography className={[classes.info, classes[`info--${appTheme}`]].join(' ')} color="textSecondary">
             1 {govToken?.symbol} locked for 4 years = 1.00 {veToken?.symbol}
           </Typography>
@@ -33,7 +33,7 @@ export default function VestingInfo({
             color="textSecondary"
           >
             <img src="/images/ui/info-circle-blue.svg" />
-            <span>1 {govToken?.symbol} locked for 1 years = 0.25 {veToken?.symbol}</span>
+            <span>1 {govToken?.symbol} locked for 1 year = 0.25 {veToken?.symbol}, 1 {govToken?.symbol} locked for 4 years = 1 {veToken?.symbol}</span>
           </Typography>
         </div>
       )}

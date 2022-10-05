@@ -3,7 +3,7 @@ import * as moment from "moment/moment";
 import {getTokenAllowance, isNetworkToken} from "./token-helper";
 import {callContractWait} from "./web3-helper";
 import {v4 as uuidv4} from "uuid";
-import {ACTIONS, CONTRACTS, MAX_UINT256} from "./../constants";
+import {ACTIONS, CONTRACTS, MAX_UINT256, TAXABLE_TOKENS} from "./../constants";
 import {formatCurrency, parseBN} from '../../utils';
 import {emitNewNotifications, emitStatus, emitNotificationDone} from "./emit-helper";
 
@@ -76,30 +76,23 @@ export const swap = async (
         allowanceTXID,
         emitter,
         dispatcher,
-        () => {}
+        () => {
+        }
       );
     }
 
     // SUBMIT SWAP TRANSACTION
     let _slippage = slippage;
 
-    // todo taxable tokens logic, need make universal logic
-    if (
-      fromAsset.address.toLowerCase() ===
-      CONTRACTS.SPHERE_ADDRESS.toLowerCase() &&
-      Number(slippage) <= 22
-    ) {
-      _slippage = (30 + Number(slippage)).toString();
-    }
-
     const sendSlippage = BigNumber(100).minus(_slippage).div(100);
 
     const sendFromAmount = parseBN(fromAmount, fromAsset.decimals);
-    const sendMinAmountOut = BigNumber(sendFromAmount)
+    const sendMinAmountOut = BigNumber(quote.output.finalValue)
+      .times(10 ** toAsset.decimals)
       .times(sendSlippage)
       .toFixed(0);
-    console.log("fromAmount", fromAmount, sendFromAmount)
-    console.log("sendMinAmountOut", fromAmount, sendMinAmountOut)
+    // console.log("fromAmount", fromAmount, sendFromAmount) // 10000000000000000000
+    // console.log("sendMinAmountOut", quote.output.finalValue, sendMinAmountOut) // 563329031843791
 
     const deadline = "" + moment().add(600, "seconds").unix();
 
@@ -115,12 +108,7 @@ export const swap = async (
     ];
     let sendValue = null;
 
-    // todo taxable tokens logic, need make universal logic
-    if (
-      fromAsset.address.toLowerCase() ===
-      CONTRACTS.SPHERE_ADDRESS.toLowerCase()
-    ) {
-      // SPHERE token address
+    if (TAXABLE_TOKENS.includes(fromAsset.address.toLowerCase())) {
       func = "swapExactTokensForTokensSupportingFeeOnTransferTokens";
     }
 

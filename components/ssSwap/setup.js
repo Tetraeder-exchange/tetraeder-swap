@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from 'next/router'
 import {
   TextField,
   Typography,
-  InputAdornment,
   CircularProgress,
   InputBase,
 } from "@mui/material";
@@ -10,18 +10,19 @@ import { withTheme } from "@mui/styles";
 import {
   formatCurrency,
   formatInputAmount,
-  formatAddress,
-  formatCurrencyWithSymbol,
-  formatCurrencySmall,
 } from "../../utils";
 import classes from "./ssSwap.module.css";
 import stores from "../../stores";
-import {ACTIONS, CONE_ADDRESS, CONTRACTS, WBNB_ADDRESS} from "../../stores/constants";
+import {
+    ACTIONS,
+    CONTRACTS,
+    DEFAULT_ASSET_FROM,
+    DEFAULT_ASSET_TO,
+} from "../../stores/constants";
 import BigNumber from "bignumber.js";
 import { useAppThemeContext } from "../../ui/AppThemeProvider";
 import BtnSwap from "../../ui/BtnSwap";
 import Hint from "../hint/hint";
-import Loader from "../../ui/Loader";
 import AssetSelect from "../../ui/AssetSelect";
 
 function Setup() {
@@ -54,6 +55,8 @@ function Setup() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const { appTheme } = useAppThemeContext();
+
+  const router = useRouter()
 
   const handleClickPopover = (event) => {
     setHintAnchor(event.currentTarget);
@@ -115,17 +118,43 @@ function Setup() {
           setFromAssetOptions(baseAsset);
 
           if (baseAsset.length > 0 && (toAssetValue == null || toAssetValue.chainId === "not_inited")) {
-            const dystIndex = baseAsset.findIndex((token) => {
-              return token.address?.toLowerCase() === CONE_ADDRESS.toLowerCase();
-            });
-            setToAssetValue(baseAsset[dystIndex]);
+              let toIndex
+              if (router.query.to) {
+                  const index = baseAsset.findIndex((token) => {
+                      return token.address?.toLowerCase() === router.query.to.toLowerCase();
+                  });
+                  if (index !== -1) {
+                      toIndex = index
+                  }
+              }
+              if (!toIndex) {
+                  toIndex = baseAsset.findIndex((token) => {
+                      return token.address?.toLowerCase() === DEFAULT_ASSET_TO.toLowerCase();
+                  });
+              }
+
+              setToAssetValue(baseAsset[toIndex]);
           }
 
           if (baseAsset.length > 0 && (fromAssetValue == null || fromAssetValue.chainId === "not_inited")) {
-            const wmaticIndex = baseAsset.findIndex((token) => {
-              return token.address === "BNB";
-            });
-            setFromAssetValue(baseAsset[wmaticIndex]);
+              let fromIndex;
+
+              if (router.query.from) {
+                  const index = baseAsset.findIndex((token) => {
+                      return token.address?.toLowerCase() === router.query.from.toLowerCase();
+                  });
+                  if (index !== -1) {
+                      fromIndex = index
+                  }
+              }
+
+              if (!fromIndex) {
+                  fromIndex = baseAsset.findIndex((token) => {
+                      return token.address.toLowerCase() === DEFAULT_ASSET_FROM.toLowerCase();
+                  });
+              }
+
+              setFromAssetValue(baseAsset[fromIndex]);
           }
           forceUpdate();
         };
@@ -191,8 +220,11 @@ function Setup() {
   );
 
   const onAssetSelect = (type, value) => {
+      let from, to;
     if (type === "From") {
       if (value.address === toAssetValue.address) {
+          to = fromAssetValue.address
+          from = toAssetValue.address
         setToAssetValue(fromAssetValue);
         setFromAssetValue(toAssetValue);
           if (
@@ -211,6 +243,8 @@ function Setup() {
               setToAmountValue(fromAmountValue);
           }
       } else {
+          from = value.address
+          to = toAssetValue.address
         setFromAssetValue(value);
           if (
               !(
@@ -229,6 +263,8 @@ function Setup() {
       }
     } else {
       if (value.address === fromAssetValue.address) {
+          to = fromAssetValue.address
+          from = toAssetValue.address
         setFromAssetValue(toAssetValue);
         setToAssetValue(fromAssetValue);
           if (
@@ -247,6 +283,8 @@ function Setup() {
               setToAmountValue(fromAmountValue);
           }
       } else {
+          from = fromAssetValue.address
+          to = value.address
         setToAssetValue(value);
           if (
               !(
@@ -264,6 +302,8 @@ function Setup() {
           }
       }
     }
+
+    router.push(`/swap?from=${from}&to=${to}`, undefined, { shallow: true })
 
     forceUpdate();
   };
@@ -539,6 +579,8 @@ function Setup() {
     const ta = toAssetValue;
     setFromAssetValue(ta);
     setToAssetValue(fa);
+
+    router.push(`/swap?from=${ta.address}&to=${fa.address}`, undefined, { shallow: true })
 
     const toAmount = toAmountValue
 

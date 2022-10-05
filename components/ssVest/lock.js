@@ -3,12 +3,7 @@ import {
   Paper,
   Typography,
   Button,
-  TextField,
-  InputAdornment,
   CircularProgress,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
   Tooltip,
   IconButton, InputBase,
 } from '@mui/material';
@@ -22,12 +17,12 @@ import {
   ACTIONS,
 } from '../../stores/constants';
 
-import { ArrowBack, ArrowBackIosNew } from '@mui/icons-material';
+import { ArrowBackIosNew } from '@mui/icons-material';
 import VestingInfo from "./vestingInfo";
 import { useAppThemeContext } from '../../ui/AppThemeProvider';
-import SwapIconBg from '../../ui/SwapIconBg';
 
 export default function ssLock({govToken, veToken}) {
+  const unixWeek = 604800
 
   const inputEl = useRef(null);
   const router = useRouter();
@@ -37,9 +32,15 @@ export default function ssLock({govToken, veToken}) {
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState(false);
   const [selectedValue, setSelectedValue] = useState('week');
-  const [selectedDate, setSelectedDate] = useState(moment().add(7, 'days').format('YYYY-MM-DD'));
+  const [selectedDate, setSelectedDate] = useState(moment.unix(Math.floor(moment().add(7, 'days').unix() / unixWeek) * unixWeek).format('YYYY-MM-DD'));
   const [selectedDateError, setSelectedDateError] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  const isDateCorrect = (dateStr) => {
+    const date = moment(dateStr).format('YYYY-MM-DD')
+    const correctDate = moment.unix(Math.floor(moment(dateStr).add(1, 'days').unix() / unixWeek) * unixWeek).format('YYYY-MM-DD')
+    return date === correctDate && moment(dateStr).unix() > moment().unix()
+  }
 
   useEffect(() => {
     const lockReturned = () => {
@@ -90,9 +91,11 @@ export default function ssLock({govToken, veToken}) {
         break;
       default:
     }
-    const newDate = moment().add(days, 'days').format('YYYY-MM-DD');
+    let newDate = moment().add(days, 'days');
+    // round to weeks
+    newDate = moment.unix(Math.floor(newDate.unix() / unixWeek) * unixWeek)
 
-    setSelectedDate(newDate);
+    setSelectedDate(newDate.format('YYYY-MM-DD'));
   };
 
   const onLock = () => {
@@ -380,7 +383,7 @@ export default function ssLock({govToken, veToken}) {
             (lockLoading ||
               amount === '' ||
               Number(amount) === 0 ||
-              ((moment(selectedDate).diff(moment(), 'days') + 1) % 7 !== 0) ? classes.buttonOverrideDisabled : "")
+              !isDateCorrect(selectedDate) ? classes.buttonOverrideDisabled : "")
           ].join(" ")}
           fullWidth
           variant="contained"
@@ -390,7 +393,7 @@ export default function ssLock({govToken, veToken}) {
             lockLoading ||
             amount === '' ||
             Number(amount) === 0 ||
-            ((moment(selectedDate).diff(moment(), 'days') + 1) % 7 !== 0)
+              !isDateCorrect(selectedDate)
           }
           onClick={onLock}>
           <Typography className={classes.actionButtonText}>
@@ -398,7 +401,7 @@ export default function ssLock({govToken, veToken}) {
               ? `Locking`
               : (lockLoading || amount === '' || Number(amount) === 0)
                 ? 'Enter Lock Amount'
-                : ((moment(selectedDate).diff(moment(), 'days') + 1) % 7 !== 0)
+                : !isDateCorrect(selectedDate)
                   ? 'Wrong expiration date'
                   : `Lock Tokens & Get veCONE`
             }

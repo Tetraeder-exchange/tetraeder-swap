@@ -386,10 +386,11 @@ export default function existingLock({ nft, govToken, veToken }) {
         />
 
         <VestingInfo
+            govToken={govToken}
           currentNFT={nft}
           futureNFT={futureNFT}
           veToken={veToken}
-          showVestingStructure={false}
+          showVestingStructure={true}
         />
       </div>
 

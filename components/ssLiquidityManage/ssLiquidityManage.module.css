@@ -179,17 +179,17 @@
 .warningDividerError {
   background-image: url("/images/ui/quote-loader-error--light.svg");
 }
-input[type=number].massiveInputAmount::-webkit-inner-spin-button, 
-input[type=number].massiveInputAmount::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
+input[type=number].massiveInputAmount::-webkit-inner-spin-button,
+input[type=number].massiveInputAmount::-webkit-outer-spin-button {
+  -webkit-appearance: none;
 }
 
 input[type=number].massiveInputAmount {
   -moz-appearance: textfield;
 }
-input[type=number].mediumInputAmount::-webkit-inner-spin-button, 
-input[type=number].mediumInputAmount::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
+input[type=number].mediumInputAmount::-webkit-inner-spin-button,
+input[type=number].mediumInputAmount::-webkit-outer-spin-button {
+  -webkit-appearance: none;
 }
 
 input[type=number].mediumInputAmount {
@@ -1140,6 +1140,17 @@ input[type=number].mediumInputAmount {
   background: transparent;
 }
 
+.titleSectionInline {
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: flex-start;
+  width: 152px;
+  height: 52px;
+  margin-left: -95px;
+  background: transparent;
+}
+
 .titleTitle {
   position: relative;
   width: 100%;
@@ -1229,6 +1240,22 @@ input[type=number].mediumInputAmount {
 
 
 @media (max-width: 860px) {
+  .massiveInputAssetSelect {
+    margin-bottom: 0;
+    height: 54px;
+  }
+  .massiveInputAssetSelect > div, .massiveInputAssetSelect > div > div, .massiveInputAssetSelect > div > div > div {
+    height: 54px;
+  }
+
+  .massiveInputAssetSelect > div > div > div {
+    padding: 12px 4px;
+  }
+
+  .massiveInputAssetSelect > div > div > div > div > div {
+    padding: 16px 4px;
+  }
+
   .nftItems {
     width: 100%;
   }
@@ -1341,6 +1368,7 @@ input[type=number].mediumInputAmount {
 } */
 
 .tokenSelect {
+  border: 1px solid transparent;
   border-radius: 0 !important;
 }
 .tokenSelect:hover, .tokenSelectOpen {
@@ -1698,11 +1726,15 @@ input[type=number].mediumInputAmount {
 .liqHeader {
   position: relative;
   height: 40px;
-  padding-left: 42px;
+  padding-left: 24px;
   font-weight: 500;
   font-size: 14px;
   line-height: 120%;
   color: #FFFFFF;
+}
+
+.liqHeaderWithdraw {
+  padding-left: 42px;
 }
 
 .walletIcon {
@@ -1777,6 +1809,15 @@ input[type=number].mediumInputAmount {
 }
 
 .depositHeader {
+  margin-left: 6px;
+  font-weight: 500;
+  font-size: 60px;
+  letter-spacing: 0.04em;
+  line-height: 72px;
+  color: #325569;
+}
+
+.depositHeaderInline {
   margin-left: 6px;
   font-weight: 500;
   font-size: 60px;
@@ -1897,6 +1938,10 @@ input[type=number].mediumInputAmount {
   width: 28px;
 }
 
+.boostCalculator {
+  padding-top: 20px;
+}
+
 @media (max-width:1919px) {
   .bigscreenSidebar {
     display:flex;
@@ -1954,8 +1999,22 @@ input[type=number].mediumInputAmount {
     left: 95px;
   }
 
+  .titleSectionInline {
+    display: flex;
+    width: 72px;
+    height: 72px;
+    justify-content: center;
+    position: absolute;
+    top: 0px;
+    left: 95px;
+  }
+
   .depositHeader {
     margin-left: 0;
+  }
+
+  .depositHeaderInline {
+    margin-left: 98px;
   }
 
   .bigscreenSidebar {
@@ -1966,6 +2025,13 @@ input[type=number].mediumInputAmount {
 @media (max-width: 860px) {
   .titleSection {
     top: -68px;
+    display: flex;
+    width: 48px;
+    height: 48px;
+  }
+
+  .titleSectionInline {
+    top: 0;
     display: flex;
     width: 48px;
     height: 48px;
@@ -1998,10 +2064,11 @@ input[type=number].mediumInputAmount {
 
   .massiveInputAssetSelectSingle {
     min-width: 140px;
+    margin-bottom: 0;
   }
 
   .massiveInputAssetSelectSingle > div > div > div {
-    height: 44px;
+    height: 54px;
   }
 
   .massiveInputAssetSelectSingle > div > div > div > div:before {
@@ -2026,8 +2093,12 @@ input[type=number].mediumInputAmount {
   }
 
   .liqHeaderWithdraw {
-    left: -90px;
-    width: 211px;
+    left: -148px;
+    width: 270px;
+  }
+
+  .mediumdisplayDualIconContainerTitle {
+    font-size: 12px;
   }
 
   .liqTokens {
@@ -2042,11 +2113,11 @@ input[type=number].mediumInputAmount {
     right: 26px;
     font-size: 20px;
     color: #8191B9 !important;
-    top: 66px;
+    top: 52px;
   }
 
   .flyPercentWithdraw {
-    top: 20px;
+    top: 12px;
     right: 4px;
     font-size: 20px;
   }
@@ -2166,7 +2237,7 @@ input[type=number].mediumInputAmount {
 
   .mediumInputContainer {
     width: 100%;
-    height: 61px;
+    height: 54px;
   }
 
   .mediumdisplayDualIconContainer {
@@ -2179,12 +2250,12 @@ input[type=number].mediumInputAmount {
 
   .mediumInputContainer--withdrawAmount0,
   .mediumInputContainer--withdrawAmount1 {
-    border-right: 1px solid #86B9D6;
+    /*border-right: 1px solid #86B9D6;*/
   }
 
   .mediumInputContainer--dark.mediumInputContainer--withdrawAmount0,
   .mediumInputContainer--dark.mediumInputContainer--withdrawAmount1 {
-    border-right: 1px solid #5F7285;
+    /*border-right: 1px solid #5F7285;*/
   }
 
   .swapInputs {
@@ -2212,7 +2283,7 @@ input[type=number].mediumInputAmount {
 
   .massiveInputAmount,
   .massiveInputAmountDate {
-    height: 44px;
+    height: 54px;
   }
 
 
@@ -2455,26 +2526,39 @@ input[type=number].mediumInputAmount {
   }
 
   .liqHeader {
-    padding-left: 10px;
+    padding-left: 20px;
     font-size: 12px;
   }
 
   .liqBody {
-    height: 72px;
+    height: 54px;
   }
 
   .massiveInputAmountUnstake {
     left: 10px;
+    top: 14px;
   }
 
   .tokenTextSecond {
     left: 86px;
-    top: 57px;
+    top: 52px;
     font-size: 14px;
     width: 100%;
   }
 
+  .labelSelectSecondary {
+    font-size: 14px !important;
+    line-height: 16px !important;
+  }
+
   .depositHeader {
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 48px;
+  }
+
+  .depositHeaderInline {
+    margin-left: 62px;
     font-weight: 500;
     font-size: 40px;
     line-height: 48px;
@@ -2506,13 +2590,13 @@ input[type=number].mediumInputAmount {
 @media (max-width: 582px) {
   .massiveInputAmount,
   .massiveInputAmountDate {
-    height: 44px;
+    height: 54px;
     margin-top: 0;
   }
 
   .flyPercent {
     position: absolute;
     right: 25px;
-    top: 46px;
+    top: 50px;
   }
 }

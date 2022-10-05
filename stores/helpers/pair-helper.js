@@ -501,35 +501,7 @@ async function fetchGaugeBalancesForPairs(
 
         const nft = nfts?.filter(nft => parseInt(nft.id) === parseInt(pair.gauge.veId))[0];
 
-        pair.gauge.balanceEth = BigNumber(pair.gauge.balance).times(BigNumber(pair.reserveETH).div(pair.totalSupply)).toString();
-        pair.gauge.baseBalance = BigNumber(pair.gauge.balance).times(0.4).toString();
-        const totalSupplyBase = BigNumber(pair.gauge.totalSupply).times(0.6)
-        pair.gauge.veRatio = nft.veRatio;
-        pair.gauge.bonusBalance = totalSupplyBase.times(nft.veRatio).toString();
-        const fullDerivedBalance = BigNumber(pair.gauge.bonusBalance).plus(pair.gauge.baseBalance);
-        pair.gauge.userDerivedBalance = fullDerivedBalance.gt(pair.gauge.balance) ? pair.gauge.balance : fullDerivedBalance.toString();
-        pair.gauge.userDerivedBalanceEth = BigNumber(pair.gauge.userDerivedBalance).times(BigNumber(pair.reserveETH).div(pair.totalSupply)).toString();
-
-
-        let personalAPR = BigNumber(0);
-        let aprWithoutBoost = BigNumber(0);
-        for (const rt of pair.gauge.rewardTokens) {
-          rt.userDerivedBalanceEth = pair.gauge.userDerivedBalanceEth
-
-          const startTime = Math.floor(Date.now() / 1000);
-
-          rt.userPartOfRewards = BigNumber(rt.rewardsLeftEth).times(rt.userDerivedBalanceEth).div(rt.totalDerivedSupplyEth).toString()
-          rt.personalAPR = calculateApr(startTime, rt.finishPeriod, rt.userPartOfRewards, pair.gauge.balanceEth);
-
-
-          const baseBalanceEth = BigNumber(pair.gauge.baseBalance).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
-          rt.userPartOfRewardsWithoutBoost = BigNumber(rt.rewardsLeftEth).times(baseBalanceEth).div(rt.totalDerivedSupplyEth).toString()
-          rt.aprWithoutBoost = calculateApr(startTime, rt.finishPeriod, rt.userPartOfRewardsWithoutBoost, pair.gauge.balanceEth);
-
-          personalAPR = personalAPR.plus(rt.personalAPR);
-          aprWithoutBoost = aprWithoutBoost.plus(rt.aprWithoutBoost);
-        }
-
+        const {personalAPR, aprWithoutBoost} = calculateBoost(pair, nft.veRatio, BigNumber(pair.gauge.balance));
 
         pair.gauge.personalAPR = personalAPR.toString();
         pair.gauge.aprWithoutBoost = aprWithoutBoost.toString();
@@ -540,12 +512,53 @@ async function fetchGaugeBalancesForPairs(
   }
 }
 
+export function calculateBoost(
+  pair,
+  veRatio,
+  userGaugeBalance
+) {
+
+  const userGaugeBalanceEth = BigNumber(userGaugeBalance).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
+  const userGaugeBaseBalance = BigNumber(userGaugeBalance).times(0.4);
+  const totalSupplyBase = BigNumber(pair.gauge.totalSupply).times(0.6)
+  const userGaugeBonusBalance = totalSupplyBase.times(veRatio);
+  const userFullDerivedBalance = userGaugeBonusBalance.plus(userGaugeBaseBalance);
+  const userGaugeDerivedBalance = userFullDerivedBalance.gt(userGaugeBalance) ? BigNumber(userGaugeBalance) : userFullDerivedBalance;
+  const userGaugeDerivedBalanceEth = userGaugeDerivedBalance.times(BigNumber(pair.reserveETH).div(pair.totalSupply));
+  const totalDerivedSupplyEth = BigNumber(pair.gauge.totalDerivedSupply).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
+
+  let personalAPR = BigNumber(0);
+  let aprWithoutBoost = BigNumber(0);
+  for (const rt of pair.gauge.rewardTokens) {
+    const startTime = Math.floor(Date.now() / 1000);
+
+    const userPartOfRewards = BigNumber(rt.rewardsLeftEth).times(userGaugeDerivedBalanceEth).div(totalDerivedSupplyEth);
+    const _personalAPR = calculateApr(startTime, rt.finishPeriod, userPartOfRewards, userGaugeBalanceEth);
+
+
+    const baseBalanceEth = userGaugeBaseBalance.times(BigNumber(pair.reserveETH).div(pair.totalSupply));
+    const userPartOfRewardsWithoutBoost = BigNumber(rt.rewardsLeftEth).times(baseBalanceEth).div(totalDerivedSupplyEth)
+    const _aprWithoutBoost = calculateApr(startTime, rt.finishPeriod, userPartOfRewardsWithoutBoost, userGaugeBalanceEth);
+
+    personalAPR = personalAPR.plus(_personalAPR);
+    aprWithoutBoost = aprWithoutBoost.plus(_aprWithoutBoost);
+  }
+  return {personalAPR, aprWithoutBoost};
+}
+
+export function calculatePowerForMaxBoost(pair, userGaugeBalance, totalPower) {
+  const totalSupplyBase = BigNumber(pair.gauge.totalSupply).times(0.6)
+  const bonusBalanceNeed = BigNumber(userGaugeBalance).times(0.6)
+  const desiredVeRatio = bonusBalanceNeed.div(totalSupplyBase);
+  return BigNumber(totalPower).times(desiredVeRatio).toString()
+}
 
 function calcDerivedApr(pairs) {
   for (let i = 0; i < pairs.length; i++) {
     const pair = pairs[i];
 
     let derivedAPR = BigNumber(0);
+    let totalRewardsUSD = BigNumber(0);
     const totalDerivedSupplyEth = BigNumber(pair.gauge.totalDerivedSupply).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
     for (const rt of pair.gauge.rewardTokens) {
       rt.totalDerivedSupplyEth = totalDerivedSupplyEth.toString();
@@ -553,9 +566,11 @@ function calcDerivedApr(pairs) {
       const startTime = Math.floor(Date.now() / 1000)
       rt.derivedAPR = calculateApr(startTime, rt.finishPeriod, rt.rewardsLeftEth, totalDerivedSupplyEth);
       derivedAPR = derivedAPR.plus(rt.derivedAPR);
+      totalRewardsUSD = totalRewardsUSD.plus(BigNumber(rt.rewardsLeftEth).times(pair.ethPrice))
     }
 
     pair.gauge.derivedAPR = derivedAPR.toString();
+    pair.gauge.totalRewardsUSD = totalRewardsUSD.toString();
   }
 }
 
@@ -593,7 +608,7 @@ export const enrichPairInfo = async (
 
     await addTokenInfoToPairs(pairs, baseAssets, web3, userAddress)
 
-    const ethPrice = getEthPrice();
+    const ethPrice = await getEthPrice();
     const totalWeight = await getTotalWight(web3);
     mapPairInfo(pairs, ethPrice, totalWeight);
   } catch (ex) {
@@ -628,6 +643,7 @@ async function addTokenInfoToPairs(pairs, baseAssets, web3, account) {
 
 function mapPairInfo(pairs, ethPrice, totalWeight) {
   pairs.forEach((pair) => {
+      pair.ethPrice = ethPrice;
       pair.tvl = pair.reserveUSD;
       if (!pair.gauge || pair.gauge.address === ZERO_ADDRESS) {
         return;

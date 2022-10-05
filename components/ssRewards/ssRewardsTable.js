@@ -1330,14 +1330,25 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
                                         : `/tokens/unknown-logo--${appTheme}.svg`
                                     )}
 
-                                  {row &&
-                                    row.rewardType === "Reward" &&
-                                    tableCellContent(
-                                      parseFloat(row.gauge.rewardsEarned).toFixed(4),
-                                      null,
-                                      "CONE",
-                                      null
-                                    )}
+                                  <div>
+                                    {row &&
+                                      row.rewardType === "Reward" &&
+                                      row.gauge &&
+                                      row.gauge.rewardTokens &&
+                                      row.gauge.rewardTokens.map((rt) => {
+                                        return tableCellContent(
+                                          parseFloat(rt.rewardsEarned).toFixed(4),
+                                          null,
+                                          rt.token?.symbol,
+                                          null,
+                                          rt &&
+                                          rt.token &&
+                                          rt.token.logoURI
+                                            ? rt.token.logoURI
+                                            : `/tokens/unknown-logo--${appTheme}.svg`
+                                        );
+                                      })}
+                                  </div>
 
                                   {row &&
                                     row.rewardType === "Distribution" &&

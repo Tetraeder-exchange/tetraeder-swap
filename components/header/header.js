@@ -2,8 +2,8 @@ import React, {useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import BigNumber from 'bignumber.js';
 
-import {Badge, Button, IconButton, Menu, MenuItem, SvgIcon, Typography,} from "@mui/material";
-import {styled, withStyles, withTheme} from "@mui/styles";
+import {Badge, Button, IconButton, Typography, Tooltip} from "@mui/material";
+import {withStyles, withTheme} from "@mui/styles";
 
 import Navigation from "../navigation";
 import Unlock from "../unlock";
@@ -48,6 +48,25 @@ const StatButton = () => {
   const {appTheme} = useAppThemeContext();
 
   return (
+      <Tooltip
+          title="Analytics"
+          placement="bottom"
+          componentsProps={{
+            tooltip: {
+              style: {
+                padding: '12px 24px',
+                fontFamily: 'Poppins',
+                fontSize: 16,
+                fontWeight: 400,
+                lineHeight: '24px',
+                border: '1px solid #779BF4',
+                borderRadius: 12,
+                background: '#1F2B49',
+                color: '#E4E9F4',
+              }
+            },
+          }}
+      >
     <div
       className={[classes.statButton, classes[`statButton--${appTheme}`], 'g-flex', 'g-flex--align-center'].join(' ')}
       onClick={() => window.open("https://info.cone.exchange/home", "_blank")}
@@ -73,6 +92,7 @@ const StatButton = () => {
         </svg>
       </span>
     </div>
+      </Tooltip>
   )
 }
 
@@ -412,7 +432,7 @@ function Header(props) {
                             strokeLinejoin="round" />
                     </svg>
 
-                    <span style={{marginLeft: 15}}>Connect Wallet</span>
+                    <span style={{marginLeft: 15, whiteSpace: 'nowrap',}}>Connect Wallet</span>
                   </Button>
                 )
               }}

@@ -8,29 +8,25 @@ import {
   InputAdornment,
   CircularProgress,
   Tooltip,
-  IconButton,
   MenuItem,
   InputBase,
   Select,
-  ClickAwayListener, Grid,
+  Grid,
 } from "@mui/material";
 import BigNumber from "bignumber.js";
 import { formatCurrency } from "../../utils";
 import classes from "./ssLiquidityManage.module.css";
 import stores from "../../stores";
-import { ACTIONS, CONTRACTS } from "../../stores/constants";
+import {ACTIONS, CONTRACTS, DEFAULT_ASSET_FROM, DEFAULT_ASSET_TO} from "../../stores/constants";
 import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
-import {
-  ArrowBackIosNew,
-} from "@mui/icons-material";
 import { useAppThemeContext } from "../../ui/AppThemeProvider";
-import { formatSymbol, formatInputAmount } from "../../utils";
+import { formatInputAmount } from "../../utils";
 import AssetSelect from "../../ui/AssetSelect";
-import Borders from "../../ui/Borders";
-import Loader from "../../ui/Loader";
+// import Loader from "../../ui/Loader";
 import SwitchCustom from "../../ui/Switch";
 import Hint from "../hint/hint";
 import BackButton from "../../ui/BackButton";
+import BoostCalculator from './ssBoostCalculator';
 
 export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   const router = useRouter();
@@ -46,6 +42,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
   const [pair, setPair] = useState(null);
   const [veToken, setVeToken] = useState(null);
+  const [pairLoading, setPairLoading] = useState(true);
 
   const [depositLoading, setDepositLoading] = useState(false);
   const [stakeLoading, setStakeLoading] = useState(false);
@@ -203,12 +200,12 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
       let aa0 = asset0;
       let aa1 = asset1;
       if (storeAssetOptions.length > 0 && asset0 == null) {
-        const asset = storeAssetOptions.filter(a => a.symbol === 'BNB')[0];
+        const asset = storeAssetOptions.filter(a => a.id.toLowerCase() === DEFAULT_ASSET_FROM.toLowerCase())[0];
         setAsset0(asset);
         aa0 = asset;
       }
       if (storeAssetOptions.length > 1 && asset1 == null) {
-        const asset = storeAssetOptions.filter(a => a.symbol === 'CONE')[0];
+        const asset = storeAssetOptions.filter(a => a.id.toLowerCase() === DEFAULT_ASSET_TO.toLowerCase())[0];
         setAsset1(asset);
         aa1 = asset;
       }
@@ -1375,7 +1372,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             </div>
         )}
 
-        {withdrawAsset !== null && withdrawAction !== null && (
+        {withdrawAsset !== null && withdrawAction !== "" && (
           <div
             className={["g-flex", classes.liqWrapper].join(" ")}
             style={{ width: "100%", marginTop: 20 }}
@@ -1943,6 +1940,18 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     }
   }, [withdrawAsset?.gauge?.tokenId, vestNFTs.length]);
 
+  const isShowBoostCalculator = !!pair && pair.gauge !== null;
+
+  useEffect(() => {
+    if (!!asset0 && !!asset1) {
+      setPairLoading(false);
+    } else {
+      setPairLoading(true);
+    }
+  }, [asset0, asset1]);
+
+  const editLPDesign = !!router.query.address
+
   return (
       <div className="g-flex g-flex--justify-center">
         <div className={classes.bigscreenSidebar}>
@@ -1953,14 +1962,15 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
         </div>
         <Paper elevation={0} className={[classes.container, "g-flex-column"]}>
 
-          <div className={classes.toggleButtons}>
-            <Grid container spacing={0} sx={{height: '100%'}}>
-              <Grid item lg={6} md={6} sm={6} xs={6}>
-                <Paper
-                    className={`${activeTab === "deposit" ? classes.buttonActive : classes.button} ${classes.topLeftButton}`}
-                    onClick={toggleDeposit}
-                    disabled={depositLoading}
-                >
+          {editLPDesign &&
+              <div className={classes.toggleButtons}>
+                <Grid container spacing={0} sx={{height: '100%'}}>
+                  <Grid item lg={6} md={6} sm={6} xs={6}>
+                    <Paper
+                        className={`${activeTab === "deposit" ? classes.buttonActive : classes.button} ${classes.topLeftButton}`}
+                        onClick={toggleDeposit}
+                        disabled={depositLoading}
+                    >
                   <span
                       style={{
                         color: activeTab === "deposit"
@@ -1970,19 +1980,19 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                   >
                     Add Liquidity
                   </span>
-                </Paper>
-              </Grid>
+                    </Paper>
+                  </Grid>
 
-              <Grid item lg={6} md={6} sm={6} xs={6}>
-                <Paper
-                    className={`${
-                        activeTab === "withdraw" ? classes.buttonActive : classes.button
-                    } ${classes.bottomLeftButton} ${
-                        appTheme === "dark" ? classes["bottomLeftButton--dark"] : ""
-                    }`}
-                    onClick={toggleWithdraw}
-                    disabled={depositLoading}
-                >
+                  <Grid item lg={6} md={6} sm={6} xs={6}>
+                    <Paper
+                        className={`${
+                            activeTab === "withdraw" ? classes.buttonActive : classes.button
+                        } ${classes.bottomLeftButton} ${
+                            appTheme === "dark" ? classes["bottomLeftButton--dark"] : ""
+                        }`}
+                        onClick={toggleWithdraw}
+                        disabled={depositLoading}
+                    >
                   <span
                       style={{
                         color: activeTab === "withdraw"
@@ -1992,15 +2002,16 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                   >
                    Withdraw Liquidity
                   </span>
-                </Paper>
-              </Grid>
-            </Grid>
-          </div>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </div>
+          }
 
           <div className={[classes.titleTitle, "g-flex g-flex--align-center g-flex--wrap"].join(" ")}>
             <div
                 className={[
-                  classes.titleSection,
+                  editLPDesign ? classes.titleSection : classes.titleSectionInline,
                 ].join(" ")}
             >
               <BackButton
@@ -2012,7 +2023,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             {createLP && activeTab === "deposit" && (
                 <div
                     className={[
-                      classes.depositHeader,
+                      editLPDesign ? classes.depositHeader : classes.depositHeaderInline,
                       classes[`depositHeader--${appTheme}`],
                     ].join(" ")}
                 >
@@ -2023,7 +2034,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             {createLP && activeTab === "withdraw" && (
                 <div
                     className={[
-                      classes.depositHeader,
+                      editLPDesign ? classes.depositHeader : classes.depositHeaderInline,
                       classes[`depositHeader--${appTheme}`],
                     ].join(" ")}
                 >
@@ -2036,7 +2047,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             {!createLP && (
                 <div
                     className={[
-                      classes.depositHeader,
+                      editLPDesign ? classes.depositHeader : classes.depositHeaderInline,
                       classes[`depositHeader--${appTheme}`],
                     ].join(" ")}
                 >
@@ -2163,12 +2174,17 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                     </div>
 
                     {!createLP &&
-                        <div className={classes.nftRow} style={{width: '100%',}}>
-                          <div className={classes.nftTitle}>
-                            Attach {VE_TOKEN_NAME} to your LP to receive boosted rewards
+                        <>
+                          <div className={classes.nftRow} style={{width: '100%',}}>
+                            <div className={classes.nftTitle}>
+                              Attach {VE_TOKEN_NAME} to your LP to receive boosted rewards
+                            </div>
+                            <div className={classes.nftItems}>{renderTokenSelect()}</div>
                           </div>
-                          <div className={classes.nftItems}>{renderTokenSelect()}</div>
-                        </div>
+                          {isShowBoostCalculator && <div className={classes.boostCalculator}>
+                            <BoostCalculator pair={pair} nft={token} ve={veToken} isMobileView={windowWidth < 860} amount={amount0}/>
+                          </div>}
+                        </>
                     }
 
                     <div className={classes.myLiqCont}>
@@ -2479,9 +2495,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
               <span className={classes.actionButtonText}>
                 Create LP
               </span>
-                      {depositLoading && (
+                      {/*{depositLoading && (
                           <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                      )}
+                      )}*/}
                     </Button>
                 )}
                 {amount0 !== "" && amount1 !== "" && createLP && pair !== null && (pair.gauge || needAddToWhiteList) && (
@@ -2495,6 +2511,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                             depositLoading ||
                             stakeLoading ||
                             depositStakeLoading
+                            || (asset0 && BigNumber(amount0).gt(asset0.balance))
+                            || (asset1 && BigNumber(amount1).gt(asset1.balance))
                         }
                         className={[
                           classes.buttonOverride,
@@ -2502,9 +2520,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                         ].join(" ")}
                     >
                       <span className={classes.actionButtonText}>Add Liquidity</span>
-                      {depositLoading && (
+                      {/*{depositLoading && (
                           <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                      )}
+                      )}*/}
                     </Button>
                 )}
                 {!pair?.gauge && pair && !needAddToWhiteList && (
@@ -2561,9 +2579,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                 {asset0 && asset1 && (amount0 === "" || amount1 === "") && "Enter Amount"}
                 {!asset0 && !asset1 && (amount0 === "" || amount1 === "") && "Select tokens & Enter Amount"}
               </span>
-                        {depositLoading && (
+                        {/*{depositLoading && (
                             <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                        )}
+                        )}*/}
                       </Button>
                   )}
 
@@ -2588,9 +2606,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                 {withdrawAsset && amount0 !== "" && "Stake LP"}
                 {withdrawAsset && amount0 === "" && "Enter Amount"}
               </span>
-                        {depositLoading && (
+                        {/*{depositLoading && (
                             <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                        )}
+                        )}*/}
                       </Button>
                   )}
                 </div>
@@ -2781,9 +2799,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
               {withdrawAsset === null && "Select LP & action"}
             </span>
-                  {depositLoading && (
+                  {/*{depositLoading && (
                       <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                  )}
+                  )}*/}
                 </Button>
               </>
           )}

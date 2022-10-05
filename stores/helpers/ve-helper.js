@@ -12,6 +12,11 @@ export function getNftById(id, nfts) {
   return nfts.filter(n => parseInt(n.id) === parseInt(id)).reduce((a, b) => b, null);
 }
 
+export async function getVeTotalPower(web3) {
+  const vestingContract = getVestingContract(web3);
+  return formatBN(await vestingContract.methods.totalSupply().call());
+}
+
 export const loadNfts = async (account, web3, tokenID) => {
   if (!account || !web3) {
     return [];
@@ -20,7 +25,7 @@ export const loadNfts = async (account, web3, tokenID) => {
     // const userInfo = await loadUserInfoFromSubgraph(account);
     // const userNfts = userInfo?.nfts ?? [];
     const vestingContract = getVestingContract(web3);
-    const totalPower = formatBN(await vestingContract.methods.totalSupply().call());
+    const totalPower = await getVeTotalPower(web3);
     const nftsLength = await vestingContract.methods.balanceOf(account).call();
     const nftRange = Array.from({length: parseInt(nftsLength)}, (v, i) => i);
 
@@ -36,6 +41,7 @@ export const loadNfts = async (account, web3, tokenID) => {
             lockEnds: locked.end,
             lockAmount: formatBN(locked.amount),
             lockValue: lockValue,
+            totalPower: totalPower,
             // subgraphInfo: userNfts.filter(n => parseInt(n.id) === parseInt(tokenIndex))[0],
             veRatio: BigNumber(lockValue).div(totalPower).toString(),
             percentOfTotalPower: BigNumber(lockValue).div(totalPower).times(100).toString(),

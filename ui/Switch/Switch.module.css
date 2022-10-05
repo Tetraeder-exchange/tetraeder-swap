@@ -51,6 +51,11 @@
   background: rgba(119, 155, 244, 0.4);
 }
 
+.switch--disabled {
+  opacity: 0.5;
+  cursor: auto;
+}
+
 @media (min-width: 1920px) {
   .track {
     width: 72px;

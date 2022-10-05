@@ -787,6 +787,10 @@ input[type=number].massiveInputAmount {
   height: 100%;
 }
 
+.dateInput[type="date"] {
+  -webkit-appearance: none;
+}
+
 .dateInput[type="date"]::-webkit-inner-spin-button,
 .dateInput[type="date"]::-webkit-calendar-picker-indicator {
     display: none;
@@ -794,6 +798,9 @@ input[type=number].massiveInputAmount {
 }
 
 .dateInput {
+  display: inline-flex !important;
+  align-items: center !important;
+
   height: 100% !important;
 
   padding: 0 16px !important;
@@ -996,17 +1003,13 @@ input[type=number].massiveInputAmount {
 
 .titleSection {
   position: absolute;
-
-  top: 55px;
+  top: 26px;
   left: 28px;
-
   display: inline-flex;
   align-items: center;
-
   max-width: 377px;
   width: 100%;
   padding: 17px 25px;
-
   font-family: 'Poppins';
   font-size: 16px;
   font-weight: 400;
@@ -1031,7 +1034,7 @@ input[type=number].massiveInputAmount {
 
 @media (max-width: 1350px) {
   .titleSection {
-    top: 67px;
+    top: 38px;
     padding: 5px;
   }
 

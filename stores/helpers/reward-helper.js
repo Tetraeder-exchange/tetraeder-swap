@@ -163,8 +163,7 @@ async function collectGaugeRewards(
   userAddress,
   baseAssets
 ) {
-  const pairsWithPositions = pairs?.filter(p => !!p.userPosition).map(p => Object.assign({}, p)) ?? [];
-
+  const pairsWithPositions = pairs?.filter(p => !!p.userPosition && !!p.gauge).map(p => Object.assign({}, p)) ?? [];
   const results = await multicallRequest(multicall, pairsWithPositions, (calls, pair) => {
     const gaugeContract = new web3.eth.Contract(CONTRACTS.GAUGE_ABI, pair.gauge.id);
     for (const rt of pair.gauge.rewardTokens) {
@@ -203,7 +202,7 @@ export const getRewardBalances = async (
   // console.log('getRewardBalances')
   const userAddress = account;
   const {tokenID} = payload.content;
-  if (!userAddress || !tokenID || !pairs || !veToken || !govToken || !vestNFTs || !baseAssets) {
+  if (!userAddress || tokenID == null || !pairs || !veToken || !govToken || !vestNFTs || !baseAssets) {
     return null;
   }
   try {

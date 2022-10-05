@@ -7,7 +7,6 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Tooltip,
   Dialog,
   MenuItem,
   IconButton,
@@ -18,12 +17,15 @@ import BigNumber from 'bignumber.js';
 import { formatCurrency } from '../../utils';
 import classes from './ssBribeCreate.module.css';
 import { formatSymbol, formatInputAmount } from '../../utils';
-
 import stores from '../../stores';
 import {
   ACTIONS,
+  DEFAULT_ASSET_TO,
+  DEFAULT_ASSET_FROM,
   ETHERSCAN_URL,
 } from '../../stores/constants';
+import {FTM_ADDRESS, WFTM_ADDRESS} from '../../stores/constants/contracts'
+
 import { useAppThemeContext } from '../../ui/AppThemeProvider';
 import BackButton from "../../ui/BackButton";
 
@@ -49,15 +51,41 @@ export default function ssBribeCreate() {
     setGaugeOptions(storePairs);
 
     if (filteredStoreAssetOptions.length > 0 && asset == null) {
-      setAsset(filteredStoreAssetOptions[0]);
+      for (let i = 0; i < storeAssetOptions.length; i++) {
+        if (filteredStoreAssetOptions[i].address.toLowerCase() === DEFAULT_ASSET_TO.toLowerCase()) {
+          setAsset(filteredStoreAssetOptions[i]);
+          break;
+        }
+      }
     }
 
     if (storePairs.length > 0 && gauge == null) {
-      for (var i = 0; i < storePairs.length; i++)
-        if (storePairs[i].gauge != null) {
-          setGauge(storePairs[i]);
-          break;
+      let defaultPair, i;
+      const defaultAssetFrom = DEFAULT_ASSET_FROM === FTM_ADDRESS ? WFTM_ADDRESS : DEFAULT_ASSET_FROM
+      const defaultAssetTo = DEFAULT_ASSET_TO === FTM_ADDRESS ? WFTM_ADDRESS : DEFAULT_ASSET_TO
+      for (i = 0; i < storePairs.length; i++) {
+        if (
+            storePairs[i].gauge != null
+            &&
+            (
+                (storePairs[i].token0.address.toLowerCase() === defaultAssetFrom.toLowerCase() && storePairs[i].token1.address.toLowerCase() === defaultAssetTo.toLowerCase())
+                || (storePairs[i].token1.address.toLowerCase() === defaultAssetFrom.toLowerCase() && storePairs[i].token0.address.toLowerCase() === defaultAssetTo.toLowerCase())
+            )
+        ) {
+          defaultPair = storePairs[i]
+          break
         }
+      }
+
+      if (!defaultPair) {
+        for (i = 0; i < storePairs.length; i++)
+          if (storePairs[i].gauge != null) {
+            defaultPair = storePairs[i]
+            break;
+          }
+      }
+
+      setGauge(defaultPair);
     }
   };
 
