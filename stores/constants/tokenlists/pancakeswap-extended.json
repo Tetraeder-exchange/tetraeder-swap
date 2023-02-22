@@ -2547,6 +2547,14 @@
       "chainId": 56,
       "decimals": 18,
       "logoURI": "https://assets.coingecko.com/coins/images/20658/small/sd.png"
+    },
+    {
+      "name": "PAPER",
+      "symbol": "PAPER",
+      "address": "0xE239b561369aeF79eD55DFdDed84848A3bF60480",
+      "chainId": 56,
+      "decimals": 18,
+      "logoURI": "https://1985663456-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FyXM6bEIC9hOjfFsdiXGc%2Fuploads%2Fp5OsDcbvPLilFbzK20TW%2FPAPER%20Color.png?alt=media&token=279a8dba-1343-4a80-9f8c-32a1a62821f4"
     }
   ]
 }
